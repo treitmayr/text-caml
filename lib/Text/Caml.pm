@@ -415,7 +415,6 @@ sub _parse_partial {
 
     my $content = $self->_slurp_template($template);
     $content = $self->_parse($content, $context);
-    $content = $self->_escape($content) if $esc;
 
     $self->{current_script_directory} = $csd_org;
 
@@ -432,7 +431,6 @@ sub _parse_inherited_template {
 
     my $content = $self->_slurp_template($name);
     $content = $self->_parse($content, $context, $override);
-    $content = $self->_escape($content) if $esc;
 
     $self->{current_script_directory} = $csd_org;
 
