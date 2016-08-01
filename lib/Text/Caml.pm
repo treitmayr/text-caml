@@ -6,6 +6,7 @@ use warnings;
 require Carp;
 require Scalar::Util;
 use File::Spec ();
+use File::Basename;
 
 our $VERSION = '0.14';
 
@@ -365,30 +366,77 @@ sub _parse_inverted_section {
     return $output;
 }
 
+sub _find_file {
+    my $self = shift;
+    my ($path_org) = @_;
+    my $ext = $self->{default_partial_extension};
+    my $path = $path_org;
+
+    Carp::croak("Undefined file path") unless defined $path;
+
+    if (File::Spec->file_name_is_absolute($path)) {
+        # absolute path
+        if (defined $ext && !(-f $path || -p $path)) {
+            $path = "$path.$ext";
+        }
+        Carp::croak("Can't find '$path'") unless (-f $path || -p $path);
+    } else {
+        # relative path
+        my $testpath = $path;
+        if (my $csd = $self->{current_script_directory}) {
+            $testpath = File::Spec->catfile($csd, $path);
+            if (defined $ext && !(-f $testpath)) {
+                $testpath = "$testpath.$ext";
+            }
+        }
+        my @tpaths = (ref $self->{templates_path}) ? @{$self->{templates_path}} :
+                                                     ($self->{templates_path});
+        $path = basename($path);
+        while (@tpaths && !(-f $testpath)) {
+            my $tpath = shift @tpaths;
+            $testpath = File::Spec->catfile($tpath, $path);
+            if (defined $ext && !(-f $testpath)) {
+                $testpath = "$testpath.$ext";
+            }
+        }
+        Carp::croak("Can't find '$path_org'") unless (-f $testpath);
+        $path = $testpath;
+    }
+    return $path;
+}
+
 sub _parse_partial {
     my $self = shift;
     my ($template, $context) = @_;
 
-    if (my $ext = $self->{default_partial_extension}) {
-        $template = "$template.$ext";
-    }
+    $template = $self->_find_file($template);
+
+    my $csd_org = $self->{current_script_directory};
 
     my $content = $self->_slurp_template($template);
+    $content = $self->_parse($content, $context);
+    $content = $self->_escape($content) if $esc;
 
-    return $self->_parse($content, $context);
+    $self->{current_script_directory} = $csd_org;
+
+    return $content;
 }
 
 sub _parse_inherited_template {
     my $self = shift;
     my ($name, $override, $context) = @_;
 
-    if (my $ext = $self->{default_partial_extension}) {
-        $name = "$name.$ext";
-    }
+    $name = $self->_find_file($name);
+
+    my $csd_org = $self->{current_script_directory};
 
     my $content = $self->_slurp_template($name);
+    $content = $self->_parse($content, $context, $override);
+    $content = $self->_escape($content) if $esc;
 
-    return $self->_parse($content, $context, $override);
+    $self->{current_script_directory} = $csd_org;
+
+    return $content;
 }
 
 sub _parse_block {
@@ -416,13 +464,8 @@ sub _slurp_template {
     my $self = shift;
     my ($template) = @_;
 
-    my $path =
-      defined $self->templates_path
-      && !(File::Spec->file_name_is_absolute($template))
-      ? File::Spec->catfile($self->templates_path, $template)
-      : $template;
-
-    Carp::croak("Can't find '$path'") unless defined $path && -f $path;
+    my $path = $self->_find_file($template);
+    $self->{current_script_directory} = dirname(File::Spec->rel2abs($path));
 
     my $content = do {
         local $/;
@@ -431,8 +474,6 @@ sub _slurp_template {
     };
 
     Carp::croak("Can't open '$template'") unless defined $content;
-
-    chomp $content;
 
     return $content;
 }
