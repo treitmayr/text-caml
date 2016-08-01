@@ -555,12 +555,13 @@ empty it is simply ignored.
     Hello {{user}}!
 
 By default every variable is escaped when parsed. This can be omitted using C<&>
-flag.
+flag or triple braces.
 
     # user is '1 > 2'
     Hello {{user}}! => Hello 1 &gt; 2!
 
-    Hello {{&user}}! => Hello 1 > 2!
+    Hello {{&user}}!  => Hello 1 > 2!
+    Hello {{{user}}}! => Hello 1 > 2!
 
 Using a C<.> syntax it is possible to access deep hash structures.
 
@@ -578,6 +579,14 @@ Comments are ignored. They can be multiline too.
   foo{{!
   Comment
   }}bar
+
+=head3 Preventing substitution
+
+Variable substitution can be prevented by preceeding the variable name with a dash.
+
+  Keep me {{-braced}}!
+
+  Keep me {{braced}}!
 
 =head3 Sections
 
