@@ -328,8 +328,7 @@ sub _parse_section {
     }
     elsif (ref $value eq 'CODE') {
         $template = $self->_parse($template, $context);
-        $output
-          .= $self->_parse($value->($self, $template, $context), $context);
+        $output .= $value->($self, $template, $context);
     }
     elsif (ref $value) {
         $output .= $self->_parse($template, {%$context, _with => $value});
