@@ -213,7 +213,6 @@ sub _parse_tag {
     # Current element
     if ($name eq '.') {
         return '' if $self->_is_empty($context, $name);
-
         $value = $context->{$name};
     }
 
@@ -224,7 +223,7 @@ sub _parse_tag {
     if (ref $value eq 'CODE') {
         my $content = $value->($self, '', $context);
         $content = '' unless defined $content;
-        return $self->_parse($content, $context);
+        return $content;
     }
 
     return $value;
@@ -462,12 +461,11 @@ sub _slurp_template {
     my $self = shift;
     my ($template) = @_;
 
-    my $path = $self->_find_file($template);
-    $self->{current_script_directory} = dirname(File::Spec->rel2abs($path));
+    $self->{current_script_directory} = dirname(File::Spec->rel2abs($template));
 
     my $content = do {
         local $/;
-        open my $file, '<:encoding(UTF-8)', $path or return;
+        open my $file, '<:encoding(UTF-8)', $template or return;
         <$file>;
     };
 
