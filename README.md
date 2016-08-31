@@ -39,13 +39,18 @@ empty it is simply ignored.
 
     Hello {{user}}!
 
-By default every variable is escaped when parsed. This can be omitted using `&`
-flag.
+Substitution can be prevented by adding a dash flag in front of the name, eg. `{{-foo}}`.
+
+    Hello {{-user}}! => Hello {{user}}!
+
+By default every variable is escaped when parsed. This can be omitted using the `&`
+flag or triple braces.
 
     # user is '1 > 2'
     Hello {{user}}! => Hello 1 &gt; 2!
 
-    Hello {{&user}}! => Hello 1 > 2!
+    Hello {{&user}}!  => Hello 1 > 2!
+    Hello {{{user}}}! => Hello 1 > 2!
 
 Using a `.` syntax it is possible to access deep hash structures.
 
@@ -53,6 +58,12 @@ Using a `.` syntax it is possible to access deep hash structures.
     {{user.name}}
 
     Larry
+
+### Preventing substitution
+
+Variable substitution can be prevented by preceeding the variable name with a dash flag.
+
+    Keep me {{-braced}}! => Keep me {{braced}}!
 
 ### Comments
 
@@ -78,7 +89,7 @@ variable type different iterators are created.
 
         We have comments!
 
-- Array, `list` is a non-empty array reference. Special variable `{{.}}` is
+- Array, `list` is a non-empty array reference. The special variable `{{.}}` is
 created to point to the current element.
 
         # list => [1, 2, 3]
@@ -86,7 +97,7 @@ created to point to the current element.
 
         123
 
-- Hash, `hash` is a non-empty hash reference. Context is swithed to the
+- Hash, `hash` is a non-empty hash reference. The context is switched to the
 elements.
 
         # hash => {one => 1, two => 2, three => 3}
@@ -115,7 +126,7 @@ for subrendering, helpers etc.
 
 ### Inverted sections
 
-Inverted sections are run in those situations when normal sections don't. When
+Inverted sections are run in those situations when normal sections aren't, i.e. when
 boolean value is false, array is empty etc.
 
     # repo => []
@@ -218,7 +229,8 @@ Render template from file.
 
 ## Repository
 
-    http://github.com/vti/text-caml
+    https://github.com/treitmayr/text-caml
+    (forked from https://github.com/vti/text-caml)
 
 # AUTHOR
 

@@ -221,7 +221,7 @@ sub _parse_tag {
     }
 
     if (ref $value eq 'CODE') {
-        my $content = $value->($self, '', $context);
+        my $content = $value->($self, undef, $context);
         $content = '' unless defined $content;
         return $content;
     }
@@ -566,6 +566,12 @@ Using a C<.> syntax it is possible to access deep hash structures.
 
     Larry
 
+=head3 Preventing substitution
+
+Variable substitution can be prevented by preceeding the variable name with a dash flag.
+
+  Keep me {{-braced}}! => Keep me {{braced}}!
+
 =head3 Comments
 
 Comments are ignored. They can be multiline too.
@@ -575,14 +581,6 @@ Comments are ignored. They can be multiline too.
   foo{{!
   Comment
   }}bar
-
-=head3 Preventing substitution
-
-Variable substitution can be prevented by preceeding the variable name with a dash.
-
-  Keep me {{-braced}}!
-
-  Keep me {{braced}}!
 
 =head3 Sections
 
